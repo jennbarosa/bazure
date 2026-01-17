@@ -1,0 +1,8 @@
+*.wav
+*.env
+dist/
+node_modules/
+*_screenshot
+*_screenshot_*
+*.png
+*.jpg

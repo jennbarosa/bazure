@@ -1,0 +1,71 @@
+#!/bin/python3
+
+import shutil
+import os
+import subprocess
+
+print("------------------------------")
+print("superbarosa azure superplex")
+print("------------------------------")
+
+BAROSA_BASE_DIR = os.getcwd()
+BAROSA_CLIENT_FOLDER = os.path.join(BAROSA_BASE_DIR, "..", "frontend")
+BAROSA_SERVER_FOLDER = os.path.join(BAROSA_BASE_DIR, "barosa-server")
+BAROSA_INTEGRATION_FOLDER = os.path.join(BAROSA_BASE_DIR, "barosa-integration-testing")
+DIRS = os.listdir(BAROSA_BASE_DIR)
+
+
+def run_module_command(module: str, command: str):
+    os.chdir(os.path.join(BAROSA_BASE_DIR, module))
+    subprocess.run(command, shell=True)
+    os.chdir(BAROSA_BASE_DIR)
+
+
+dirs_built = 0
+combined_env_path = os.path.join(BAROSA_SERVER_FOLDER, ".env")
+combined_env_content = ""
+
+for module in DIRS:
+    if not os.path.isdir(module):
+        continue
+
+    main_go = os.path.join(BAROSA_BASE_DIR, module, "main.go")
+    if not os.path.isfile(main_go):
+        # not a go module
+        continue
+
+    run_module_command(module, "go test")
+
+    # we output the final binary to the api server for it to run
+    module_output_path = os.path.join(BAROSA_SERVER_FOLDER, module)
+    run_module_command(module, f'go build -o "{module_output_path}" main.go')
+
+    # and also copy the binary to integration testing folder for it to use next
+    os.makedirs(BAROSA_INTEGRATION_FOLDER, exist_ok=True)
+    shutil.copy(module_output_path, BAROSA_INTEGRATION_FOLDER)
+
+    # finally add to combined final .env file
+    env_file = os.path.join(BAROSA_BASE_DIR, module, ".env")
+    if os.path.isfile(env_file):
+        with open(env_file, 'r') as f:
+            combined_env_content += f.read() + "\n"
+
+    dirs_built += 1
+
+print("------------------------------")
+
+# gossip secrets with frontend express server
+env_file = os.path.join(BAROSA_SERVER_FOLDER, ".env")
+if not os.path.isfile(env_file):
+    print("Unable to gossip env secrets with frontend")
+    print(f"env file not found in barosa server folder '{BAROSA_SERVER_FOLDER}'")
+else:
+    gossip_destination = BAROSA_CLIENT_FOLDER
+    shutil.copy(env_file, gossip_destination)
+    print("env file gossiped with frontend")
+
+# they busy gossiping, so now write the combined env file for server only
+with open(combined_env_path, 'w') as f:
+    f.write(combined_env_content)
+
+print(f"Built {dirs_built} Go modules")
