@@ -1,5 +1,9 @@
 ### Azure Live Computer Vision with AI Agent User Voice Feedback and AI voice description/response
-Runs in your browser. 
+
+Browser output example:
+
+<img width="380" height="180" alt="image" src="https://github.com/user-attachments/assets/5ae44c93-39ae-4e5c-bef7-979b13609f47" />
+<img width="418" height="180" alt="image" src="https://github.com/user-attachments/assets/182bf4a9-cf06-494c-ab36-a837235a0130" />
 
 ## Modules
 ``barosa-azure`` - folder for Azure computer vision. It's vaguely named at the moment..
